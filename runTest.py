@@ -7,8 +7,8 @@ from BeautifulReport import BeautifulReport as bf
 if __name__ == '__main__':
     from utils.configures.paths import SET_SYSCONFIG
 
-    SET_SYSCONFIG('betaSysConfig.ini')
-    # SET_SYSCONFIG('devSysConfig.ini')
+    # SET_SYSCONFIG('betaSysConfig.ini')
+    SET_SYSCONFIG('devSysConfig.ini')
     # SET_SYSCONFIG('proSysConfig.ini')
 
     from cases.processes.level1.updateRolesInfo import updateRolesInfo
