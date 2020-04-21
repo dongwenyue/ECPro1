@@ -1,0 +1,25 @@
+2020-04-21 14:18:27 - [ERROR] match table by updateRolesInfo_lvl1 failed
+2020-04-21 14:18:27 - [ERROR] match table by updateRolesInfo_lvl1 failed
+2020-04-21 14:22:34 - [ERROR] match table by updateRolesInfo_lvl1 failed
+2020-04-21 14:22:34 - [ERROR] match table by updateRolesInfo_lvl1 failed
+2020-04-21 14:23:32 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:23:32 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:24:49 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:24:49 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:25:42 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:25:42 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:26:01 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:26:01 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:26:34 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:26:34 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:28:51 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:28:51 - [ERROR] match table by updateRolesInfo failed
+2020-04-21 14:31:27 - [ERROR] [HTTP] http://yapi.chaomy.com/mock/96/user/roles/12 rerurn:local variable 'auth' referenced before assignment
+2020-04-21 14:36:27 - [ERROR] [HTTP] http://yapi.chaomy.com/mock/96/user/roles/12 return 400
+2020-04-21 14:38:34 - [ERROR] [HTTP] http://yapi.chaomy.com/mock/96/user/roles/12 return 400
+2020-04-21 14:38:47 - [ERROR] [HTTP] http://yapi.chaomy.com/mock/96/user/roles/123 return 400
+2020-04-21 14:45:33 - [ERROR] [HTTP] http://yapi.chaomy.com/mock/96/user/roles/123 rerurn:'NoneType' object has no attribute 'encode'
+2020-04-21 14:51:08 - [ERROR] [HTTP] http://yapi.chaomy.com/mock/96/user/roles/123 return 400
+2020-04-21 17:16:26 - [ERROR] [HTTP] http://yapi.chaomy.com/mock/96/user/roles/123 return 400
+2020-04-21 17:16:38 - [ERROR] [HTTP] http://yapi.chaomy.com/mock/96/user/roles/123 return 400
+2020-04-21 18:07:09 - [ERROR] [HTTP] http://yapi.chaomy.com/mock/96/user/roles/123 return 400
