@@ -6,7 +6,7 @@ from logging.config import fileConfig
 from utils.configures.paths import LOGCONFIG
 
 fileConfig(LOGCONFIG)
-logger = logging.getLogger('tester')
+logger = logging.getLogger('handler_fileHandler')
 
 
 def local_info(msgs):

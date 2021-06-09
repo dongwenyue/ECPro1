@@ -2,12 +2,16 @@ import requests
 import ssl
 import time
 import urllib
+import json
 import urllib3
+
+urllib3.disable_warnings()
 
 from ..stringIO.logger.testlogger import *
 
-requests.packages.urllib3.disable_warnings(
-    requests.packages.urllib3.exceptions.InsecureRequestWarning)  # @UndefinedVariable
+
+# requests.packages.urllib3.disable_warnings(
+#     requests.packages.urllib3.exceptions.InsecureRequestWarning)  # @UndefinedVariable
 
 
 class HttpUtils(object):
@@ -34,7 +38,9 @@ class HttpUtils(object):
         else:
             self.proxies = None
 
-    def request(self, url, body):
+    def request(self, url, token, body):
+        if token:
+            self.header['Authorization'] = token
         DEBUG('[HTTP] %s request body :%s' % (self.url + url, json.dumps(json.loads(body), ensure_ascii=False)))
         try:
             time_start = time.time()
@@ -46,7 +52,7 @@ class HttpUtils(object):
             ERROR('[HTTP] %s rerurn:%s' % (self.url + url, e))
             raise BaseException('[HTTP] %s rerurn:%s' % (self.url + url, e))
 
-        if response.status_code == 200:
+        if response.status_code == 200 or response.status_code == 201:
             return response.content
         else:
             ERROR('[HTTP] %s return %d' % (self.url + url, response.status_code))
@@ -77,7 +83,29 @@ class HttpUtils(object):
             ERROR('[HTTP] %s return %d' % (self.url + url, r.status_code))
             raise BaseException('[HTTP] %s return:%s' % (self.url + url, r.status_code))
 
-    def get(self, url, mod=None):
+    def request_put(self, url, token, body):
+        if token:
+            self.header['Authorization'] = token
+        DEBUG('[HTTP] %s request body :%s' % (self.url + url, json.dumps(json.loads(body), ensure_ascii=False)))
+        try:
+            time_start = time.time()
+            print(self.url + url)
+            response = requests.put(self.url + url, headers=self.header, data=json.loads(body))
+            print('1111', response)
+            DEBUG('[HTTP] %s takes: %.3f seconds' % (self.url + url, (time.time() - time_start)))
+        except Exception as e:
+            ERROR('[HTTP] %s rerurn:%s' % (self.url + url, e))
+            raise BaseException('[HTTP] %s rerurn:%s' % (self.url + url, e))
+
+        if response.status_code == 200 or response.status_code == 201:
+            return response.content
+        else:
+            ERROR('[HTTP] %s return %d' % (self.url + url, response.status_code))
+            raise BaseException('[HTTP] %s return:%s' % (self.url + url, response.status_code))
+
+    def get(self, url, token, mod=None):
+        if token:
+            self.header['Authorization'] = token
         if mod:
             mod = urllib.parse.urlencode(mod)
             url = '%s%s' % (url, mod)
@@ -91,7 +119,7 @@ class HttpUtils(object):
         try:
             time_start = time.time()
             response = self.httpClient.get(self.url + url, headers=self.header, proxies=self.proxies)
-            INFO('get packetage from %s takes：%.3f seconds' % (self.url + url, (time.time() - time_start)), False)
+            INFO('get packetage from %s takes：%s seconds' % (self.url + url, (time.time() - time_start)))
             return response.content
         except Exception as e:
             INFO('get packetage from %s takes：%.3f seconds' % (self.url + url, (time.time() - time_start)))
@@ -119,11 +147,14 @@ class HttpUtils(object):
             ERROR('get packetages from %s error: %s' % (url, e))
             raise BaseException('get packetages from %s error: %s' % (url, str(e)))
 
-    def delete(self, url, body=None):
+    def delete(self, url, token, body=None):
+        if token:
+            self.header['Authorization'] = token
         if body:
             DEBUG('[HTTP] %s delete body :%s' % (self.url + url, json.dumps(json.loads(body), ensure_ascii=False)))
             try:
                 time_start = time.time()
+                print(body)
                 response = requests.delete(self.url + url, headers=self.header, data=body.encode(),
                                            proxies=self.proxies,
                                            verify=False)

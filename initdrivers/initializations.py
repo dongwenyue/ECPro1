@@ -1,12 +1,13 @@
 from encapsulation import ECProServer
-from utils.configures.paths import SYSCONFIG, DATACONFIG
+from utils.configures.paths import SYSCONFIG, TEST_DATA_DIR
 from utils.httputils.isignetHttpUtils import HttpUtils
-from .inidriver import initdriver
-
-initdriver(DATACONFIG)
 
 from utils.configures.confparser import InitConfigs
 
 sysconfigs = InitConfigs(SYSCONFIG)
 
-ECPro = ECProServer.ECProServer(HttpUtils(sysconfigs.get('server', 'serverurl')))
+token = sysconfigs.get('server', 'token')
+
+serverurl = sysconfigs.get('server', 'serverurl')
+
+ECPro = ECProServer.ECProServer(HttpUtils(serverurl))

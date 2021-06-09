@@ -33,3 +33,9 @@ def GET_DATAS(datas):
     datas = datas.split(';')
     path = ''.join([str(r'%s%s' % (TEST_DATA_DIR, data) + ';') for data in datas])
     return path[:-1]
+
+
+def writeFile(fileName, res):
+    with open(os.path.join(TEST_DATA_RESULT, '%s.txt' % (fileName)), 'a+',
+              encoding='utf-8') as f:
+        f.writelines(res + '\n')

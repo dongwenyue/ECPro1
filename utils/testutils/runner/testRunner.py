@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-'''
-@author: wangsiyu
-'''
-from .. import unittest
-from ...converter.encoding import isUnicode
+
+import platform, sys
 from ...dbutils.sqlite_dao import CasesSqliteDao
-from ...outpututils.resultout import OUT_PDF, OUT
 from ...stringIO.logger.testlogger import *
+from ...converter.encoding import isUnicode
+from ...outpututils.resultout import OUT_PDF, OUT
+from .. import unittest
 
 separator = '--------------------------------------------------------------------------------'
 
 
 class TestCase(unittest.TestCase):
+    _class_cleanups = []
 
     def __init__(self, caseid, method_name, lvl='1'):
         unittest.TestCase.__init__(self, method_name)
@@ -19,6 +19,18 @@ class TestCase(unittest.TestCase):
         self.case_name = method_name
         self.case_db = CasesSqliteDao()
         self.lvl = lvl
+
+    @classmethod
+    def doClassCleanups(cls):
+        """Execute all class cleanup functions. Normally called for you after
+        tearDownClass."""
+        cls.tearDown_exceptions = []
+        while cls._class_cleanups:
+            function, args, kwargs = cls._class_cleanups.pop()
+            try:
+                function(*args, **kwargs)
+            except Exception as exc:
+                cls.tearDown_exceptions.append(sys.exc_info())
 
     def setUp(self):
         self.case = self.case_db.get_data_by_id(self.case_name, self.case_id, self.lvl)
@@ -47,6 +59,7 @@ class TestCase(unittest.TestCase):
             else:
                 msgerror = '用例 %s case:%s  在进行【 %s】 操作时失败\n EXPECT = %s\n ACTUAL = %s\n用例描述: %s' % \
                            (self.case_name, self.case_id, msg, str(first), str(second), self.case_decription)
+            self.fail(msgerror)
         except:
             if len(str(second)) > 100:
                 msgerror = '进行【 %s】 操作时失败\n EXPECT = %s\n ACTUAL = %s\n用例描述: %s' % \

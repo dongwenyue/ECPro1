@@ -46,7 +46,7 @@ class HttpUtils(object):
     def post(self, url, body):
         try:
             DEBUG(('http://%s request body :\n%s' % (
-            self.url + url, json.dumps(body, sort_keys=True, indent=4, separators=(',', ':')))).decode(
+                self.url + url, json.dumps(body, sort_keys=True, indent=4, separators=(',', ':')))).decode(
                 'unicode-escape'))
         except:
             DEBUG('http://%s request body :%s' % (self.url + url, body))
@@ -103,7 +103,9 @@ class HttpUtils(object):
         r = requests.post(url, headers=header, data=data)
         return r.content
 
-    def get(self, url, mod=None):
+    def get(self, url, token=None, mod=None):
+        if token:
+            self.header['Authorization'] = token
         if mod:
             mod = urllib.parse.urlencode(mod)
             url = '%s%s' % (url, '?', mod)
