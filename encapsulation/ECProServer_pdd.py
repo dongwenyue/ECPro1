@@ -289,11 +289,6 @@ class ECProServer(object):
             body['price'] = 1111
             body['category_id'] = int(category_id)
             body['tp_ids'] = [int(tp_id) for tp_id in tp_ids]
-            body['whole_sale_info'] = {
-                "quoteType": "1",
-                "saleType": "normal",
-                "minOrderQuantity": 2
-            }
             sku_table_list = []
             for field in res['data']:
                 if field['name'] == 'basic':
@@ -523,13 +518,14 @@ class ECProServer(object):
                             info_dict['value_type'] = fields['value_type']
                             info_dict['tp_id'] = fields['tp_id']
                             info_dict['_options_display'] = True
-                            for label in label_list:
-                                if fields['label'] == label:
-                                    info_dict['prop_values'] = [{"text": "%s" % ('测试类目:' + category_path.split('>>')[-1])}]
-                                    info.append(info_dict)
                             if fields['value_type'] == 'text':
-                                info_dict['prop_values'] = [{"text": "%s" % '自动创建属性值'}]
-                                info.append(info_dict)
+                                for label in label_list:
+                                    if fields['label'] == label:
+                                        info_dict['prop_values'] = [{"text": "%s" % ('测试类目:' + category_path.split('>>')[-1])}]
+                                        info.append(info_dict)
+                                    else:
+                                        info_dict['prop_values'] = [{"text": "%s" % '自动创建属性值'}]
+                                        info.append(info_dict)
                             elif fields['value_type'] == 'integer':
                                 info_dict['prop_values'] = [{"text": "1111"}]
                                 info.append(info_dict)
@@ -565,7 +561,6 @@ class ECProServer(object):
                         elif fields['field_type'] == 'select':
                             val = self.getValues(category_id, fields['id'], token, 1)
                             val_all = self.getValues_all(category_id, fields['id'], token)
-
                             if val[0]['options'] is None:
                                 info_dict['id'] = fields['id']
                                 info_dict['field_set'] = 'properties'
@@ -576,6 +571,8 @@ class ECProServer(object):
                                 info_dict['prop_values'] = [{"id": val[0]['id'], "text": val[0]['text']}]
                                 att[fields['id']] = val[0]['text']
                                 info.append(info_dict)
+# options: "{"disable": {"$op": "and", "$params": [[{"$op": "nin", "$params": [{"$op": "valueOf", "$params": ["1319054"]}, ["腈纶", "氨纶", "涤纶（聚酯纤维）"]]}]]}}"
+# options: "{"disable": {"$op": "and", "$params": [[{"$op": "nin", "$params": [{"$op": "valueOf", "$params": ["1319053"]}, ["化纤", "其它", "牛奶丝", "天鹅绒"]]}]]}}"
 
                             # 去除属性值为空的属性
                             elif val is None:
@@ -648,7 +645,9 @@ class ECProServer(object):
                             for val_options_data in options_value:
                                 options = val_options_data['options']
                                 optionss = json.loads(options)["disable"]["$params"][0][0]["$params"][1]
+                                print('------optionss', optionss)
                                 parent_id = int(json.loads(options)["disable"]["$params"][0][0]["$params"][0]["$params"][0])
+                                print('------parent_id', parent_id)
                                 parent_select_value = att.get(parent_id)
                                 if parent_select_value in optionss:
                                     if parent_id not in att_children:
@@ -666,6 +665,7 @@ class ECProServer(object):
                                     continue
 
                     # 查找出二级联动属性，并拼到info大字典里
+                    print('......att_children',att_children)
                     if att_children:
                         for att_key, att_value in att_children.items():
                             if len(att_children[att_key]) > 0:
@@ -673,6 +673,7 @@ class ECProServer(object):
                                 children_id = [i for i in children_data.keys()][0]
                                 children_text = [i for i in children_data.values()][0]
                                 for children_key, children_value in children_text.items():
+                                    print('//////children_key', children_key, children_value)
                                     info_dict_son['id'] = children_id
                                     info_dict_son['field_set'] = 'properties'
                                     info_dict_son['uuid'] = f"{uuid.uuid4()}"
@@ -686,6 +687,7 @@ class ECProServer(object):
                                     att_grandchild[children_id] = children_text
 
                     # 查找出三级联动属性
+                    print('......att_children_no', att_children_no)
                     if att_children_no:
                         for att_key_no, att_value_no in att_children_no.items():
                             for att_value_san in att_value_no:
@@ -705,10 +707,12 @@ class ECProServer(object):
                                         continue
 
                     # 将三级联动属性的列表，随机取值，然后拼到info大字典里
+                    print('......att_data_grandchild_data', att_data_grandchild_data)
                     if att_data_grandchild_data:
                         for att_data_grandchild_data_key, att_data_grandchild_data_value in att_data_grandchild_data.items():
                             grandchild_data = random.choice(att_data_grandchild_data_value)
                             for data_key, data_value in grandchild_data.items():
+                                print('?？？？data_key', data_key, data_value)
                                 info_dict_grand['id'] = att_data_grandchild_data_key
                                 info_dict_grand['field_set'] = 'properties'
                                 info_dict_grand['uuid'] = f"{uuid.uuid4()}"
@@ -763,9 +767,9 @@ class ECProServer(object):
                 boylist.append(i)
         # 设置女装 S M
         for i in textlist:
-            if 'S' in i :
+            if 'M' in i :
                 girllist.append(i)
-            elif 'M' in i :
+            elif 'L' in i :
                 girllist.append(i)
 
         num_list = []
@@ -779,7 +783,7 @@ class ECProServer(object):
         size_list = []
         for i in num_list_new:
             size_list.append(textlist[i])
-        # size_list = childrenlist
+        size_list = childrenlist
         # size_list = boylist
         # size_list = girllist
         # print(size_list)
@@ -876,6 +880,7 @@ class ECProServer(object):
             task_id = res['data']['id']
             res = True
             while res:
+                time.sleep(1)
                 res = self.checkUpload(token, task_id)
                 status = res['data']['status']
                 if status == 'finished' or status == 'timeout' or status == 'unpacked':

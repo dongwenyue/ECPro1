@@ -23,8 +23,10 @@ class CasesSqliteDao(object):
         datas = sqlite.get_datas_by_id(test_method, case_id)
         for key in list(datas.keys()):
             if hasattr(genEcpro, key):
-                datas[key] = getattr(genEcpro, key)()
+                # datas[key] = getattr(genEcpro, key)()
+                pass
             else:
+
                 if key == 'extInfo':
                     if datas[key] != None:
                         datas[key] = sqlite.get_ext_infos(datas[key])['extInfo']

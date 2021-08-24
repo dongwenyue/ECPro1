@@ -91,7 +91,7 @@ def cms_account(CMS_HOST, cms_number, cms_password):
 
 if __name__ == '__main__':
     HOST = 'qa'
-    count = 1
+    count = 0
 
     if HOST == 'qa':
         cms_number = 18617847474

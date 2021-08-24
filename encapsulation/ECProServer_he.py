@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from initdrivers.global_importers import *
 from utils.configures.paths import TEST_DATA_DIR
 from utils.outpututils.resultout import *
@@ -241,9 +243,9 @@ class ECProServer(object):
         INFO('调用 提交资源图 接口')
         mmurl = '/merchant/products/%s' % product_id
         seturl = '/merchant/products/%s/media' % product_id
-        print('lianjie', mmurl, seturl)
+        # print('lianjie', mmurl, seturl)
         res = http.get(mmurl, token)
-        print('ziyuantu', res)
+        # print('ziyuantu', res)attr_res
         res = json.loads(res)
         if res['message'] == 'Success':
             data = res['data']['media']
@@ -277,36 +279,38 @@ class ECProServer(object):
         except:
             self.fail('createProduct return:%s' % res)
 
-    def getAttr_old(self, token, tp_ids, category_id):
-        INFO('调用 获取商品属性 接口')
-        from utils.globals import ATTR
-        murl = '/%s/%s/props_form?tp_ids=%s' % (ATTR, category_id, ','.join(tp_ids))
-        res = http.get(murl, token)
-        try:
-            return json.loads(res)
-        except:
-            return res
+    # def getAttr_old(self, token, tp_ids, category_id):
+    #     INFO('调用 获取商品属性 接口')
+    #     from utils.globals import ATTR
+    #     murl = '%s/%s/props_form?tp_ids=%s' % (ATTR, category_id, ','.join(tp_ids))
+    #     res = http.get(murl, token)
+    #     try:
+    #         return json.loads(res)
+    #     except:
+    #         return res
 
     def getAttr(self, token, product_id):
         INFO('调用 获取商品属性 接口')
         from utils.globals import ATTR
         murl = '%s/%s/props_form?form_type=properties' % (ATTR, product_id)
-        # https://cms-qa-api.ecpro.com/merchant/v2/products/2138995/props_form?form_type=properties
+        # https://cms-qa-api.ecpro.com/merchant/v2/products/2138997/props_form?form_type=properties
         res = http.get(murl, token)
         try:
             return json.loads(res)
         except:
             return res
-
-
-
-
 
     def setJosn(self, codes, res, category_id, tp_ids, periodId, period, period_describe, token, category_path,
                 filename):
         if res['message'] == 'Success':
             body = {}
             info = []
+            att = {}
+            options_data = {}
+            att_grandchild = {}
+            att_children = {}
+            att_children_no = {}
+            att_data_grandchild_data = {}
             size_table = []
             specs = []
             body['created_type'] = 'save'
@@ -314,12 +318,6 @@ class ECProServer(object):
             body['price'] = 1111
             body['category_id'] = int(category_id)
             body['tp_ids'] = [int(tp_id) for tp_id in tp_ids]
-            # 1688平台 默认属性
-            # body['whole_sale_info'] = {
-            #     "quoteType": "1",
-            #     "saleType": "normal",
-            #     "minOrderQuantity": 2
-            # }
             sku_table_list = []
             for field in res['data']:
                 if field['name'] == 'basic':
@@ -336,6 +334,7 @@ class ECProServer(object):
                     res_size = []
                     res_color = get_color(2)
                     file_path = os.path.join(TEST_DATA_DIR, filename.split('.')[0], '资源图')
+                    data_path = os.path.join(TEST_DATA_DIR, filename.split('.')[0], '详情页')
                     filelist = os.listdir(file_path)
                     change_clolr_list = []
                     for color in res_color:
@@ -349,10 +348,11 @@ class ECProServer(object):
                                 try:
                                     os.chdir(file_path)
                                     print('---///',pic, '%s%s.jpg' % (colour_prefix, change_clolr_list[times]))
-                                    os.rename(pic, '%s%s.jpg' % (colour_prefix, change_clolr_list[times]))
+                                    os.renames(pic, '%s%s.jpg' % (colour_prefix, change_clolr_list[times]))
                                     times += 1
                                 except:
                                     pass
+
 
                     for num in range(1, 6):
                         times = 0
@@ -362,15 +362,18 @@ class ECProServer(object):
                                 try:
                                     os.chdir(file_path)
                                     print('--->>',pic, 'vipd%s(%s).jpg' % (change_clolr_list[times], num))
-                                    os.rename(pic, 'vipd%s(%s).jpg' % (change_clolr_list[times], num))
+                                    os.renames(pic, 'vipd%s(%s).jpg' % (change_clolr_list[times], num))
                                     times += 1
                                 except:
                                     pass
 
                     os.chdir(TEST_DATA_DIR)
+                    # 写入图片包路径
                     with zipfile.ZipFile(filename, 'w') as f:
                         for d in os.listdir(file_path):
                             f.write(file_path + os.sep + d, '资源图' + os.sep + d)
+                        for d in os.listdir(data_path):
+                            f.write(data_path + os.sep + d, '详情页' + os.sep + d)
                     f.close()
 
                     for fields in field['fields']:
@@ -397,7 +400,8 @@ class ECProServer(object):
                             specs_color_dict['spec_values'] = spec_color_values
                             specs.append(specs_color_dict)
                         if fields['label'] == '尺码':
-                            res_size = self.getSize(category_id, fields['id'], tp_ids, token, 5)
+                            res_size = self.getSize(category_id, fields['id'], tp_ids, token, 8)
+                            # res_size = self.getSize(category_id, fields['id'], tp_ids, token, 5)
                             specs_size_dict = {}
                             specs_size_dict['prop_id'] = str(fields['prop_id'])
                             specs_size_dict['sizePropId'] = fields['id']
@@ -406,6 +410,7 @@ class ECProServer(object):
                             specs_size_dict['position'] = 2
                             spec_size_values = []
                             count = 0
+                            # print('尺码res_size--->>>', res_size)
                             for size in res_size:
                                 for key, value in size.items():
                                     count += 1
@@ -431,6 +436,7 @@ class ECProServer(object):
                             specs_size_dict['position'] = 2
                             spec_size_values = []
                             count = 0
+                            # print('参考身高res_size--->>>',res_size)
                             for size in res_size:
                                 for key, value in size.items():
                                     count += 1
@@ -466,7 +472,7 @@ class ECProServer(object):
                                                 sku_table_info_dict['prop_id'] = field['prop_id']
 
                                                 if field['label'] == '天猫上市时间':
-                                                    sku_table_info_dict['text'] = '2021-02-25T03:17:40.918Z'
+                                                    sku_table_info_dict['text'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
                                                 elif field['label'] == '唯品会条码':
                                                     sku_table_info_dict['text'] = f"{uuid.uuid4()}"
                                                 elif field['label'] == '拼多多单买价':
@@ -478,17 +484,16 @@ class ECProServer(object):
                                                 elif field['label'] == '采购价':
                                                     sku_table_info_dict['text'] = '1110'
                                                 elif field['label'] == '京东自营货号':
-                                                    #sku_table_info_dict['text'] = codes[0]
-                                                    sku_table_info_dict['text'] = 'ECPRO123'
+                                                    # 仅支持英文、数字、-中划线、_下划线、+号 50位
+                                                    sku_table_info_dict['text'] = (f"{uuid.uuid4()}" + f"{uuid.uuid4()}")[:50]
                                                 elif field['label'] == '商家编码':
-                                                    sku_table_info_dict['text'] = f"{uuid.uuid4().hex}"[:32]
-                                                elif field['label'] == '商品名称':
-                                                    sku_table_info_dict['text'] = '自动创建属性值'
-                                                # elif field['label'] == '商品条形码':
-                                                #     if '1011' in tp_ids:
-                                                #         sku_table_info_dict['text'] = f"{uuid.uuid4().hex}"[:32]
-                                                #     else:
-                                                #         sku_table_info_dict['text'] = ''
+                                                    sku_table_info_dict['text'] = ''
+                                                elif field['label'] == '商品条形码':
+                                                    if '1011' in tp_ids:
+                                                        # 爱库存的商品条形码，为必填项
+                                                        sku_table_info_dict['text'] = f"{uuid.uuid4().hex}"[:32]
+                                                    else:
+                                                        sku_table_info_dict['text'] = ''
                                                 elif field['label'] == '划线价说明':
                                                     sku_table_info_dict['text'] = '吊牌价'
                                                 else:
@@ -534,10 +539,25 @@ class ECProServer(object):
                         size_table.append(size)
                     body['size_table'] = json.dumps(size_table)
 
+                elif field['name'] == 'whole_sales':
+                    whole_dict = {}
+                    for fields in field['fields']:
+                        whole_dict['quoteType'] = '1'
+                        whole_dict['saleType'] = 'normal'
+                        whole_dict['minOrderQuantity'] = '2'
+                        whole_dict['mixWholeSale'] = random.choice([True, False])
+                        if fields['label'] == '计量单位':
+                            val = self.getValues_props(category_id, fields['id'], token, tp_ids, 1)
+                            # print(val)
+                            whole_dict['unit'] = val[0]['text']
+                    # print('whole_dict---->>>',whole_dict)
+                    body['whole_sale_info'] = whole_dict
+
                 elif field['name'] == 'properties':
-                    label_list = ['淘宝标题', '天猫标题', '京东标题', '拼多多标题', '唯品会标题', '有赞标题', '快手标题', '抖音标题', '京东自营标题', '爱库存标题']
                     for fields in field['fields']:
                         info_dict = {}
+                        info_dict_son = {}
+                        info_dict_grand = {}
                         if fields['field_type'] == 'input':
                             info_dict['id'] = fields['id']
                             info_dict['field_set'] = 'properties'
@@ -545,12 +565,32 @@ class ECProServer(object):
                             info_dict['value_type'] = fields['value_type']
                             info_dict['tp_id'] = fields['tp_id']
                             info_dict['_options_display'] = True
-                            for label in label_list:
-                                if fields['label'] == label:
+                            if '标题' in fields['label']:
+                                if '无线短标题' in fields['label']:
+                                    # 最多输入 20个字符，1 个汉字占 2 个字符
+                                    count_zh = 0
+                                    subscript = 0
+                                    Wireless_short_title = '测试类目:' + category_path.split('>>')[-1]
+                                    for short_title in Wireless_short_title:
+                                        if short_title.isalpha():
+                                            count_zh += 2
+                                            subscript += 1
+                                        else:
+                                            count_zh += 1
+                                            subscript += 1
+                                        if count_zh >= 19:
+                                            break
+                                    Wireless_short_title_str = Wireless_short_title[:subscript]
+                                    info_dict['prop_values'] = [{"text": "%s" % (Wireless_short_title_str)}]
+                                    info.append(info_dict)
+                                else:
                                     info_dict['prop_values'] = [{"text": "%s" % ('测试类目:' + category_path.split('>>')[-1])}]
                                     info.append(info_dict)
-                            if fields['label'] == '保质期':
+                            elif fields['label'] == '保质期':
                                info_dict['prop_values'] = [{"text": "%s" % ('1')}]
+                               info.append(info_dict)
+                            elif fields['label'] == '抖音售卖价':
+                               info_dict['prop_values'] = [{"text": "1111"}]
                                info.append(info_dict)
 
                             elif fields['value_type'] == 'text':
@@ -590,18 +630,9 @@ class ECProServer(object):
 
                         elif fields['field_type'] == 'select':
                             val = self.getValues(category_id, fields['id'], token, 1)
-                            if val:
-                                info_dict['id'] = fields['id']
-                                info_dict['field_set'] = 'properties'
-                                info_dict['uuid'] = f"{uuid.uuid4()}"
-                                info_dict['value_type'] = fields['value_type']
-                                info_dict['tp_id'] = fields['tp_id']
-                                info_dict['_options_display'] = True
-                                info_dict['prop_values'] = [{"id": val[0]['id'], "text": val[0]['text']}]
-                                info.append(info_dict)
-
+                            val_all = self.getValues_all(category_id, fields['id'], token)
                             # 去除属性值为空的属性
-                            elif val is None:
+                            if val is None:
                                 info_dict['id'] = fields['id']
                                 info_dict['field_set'] = 'properties'
                                 info_dict['uuid'] = f"{uuid.uuid4()}"
@@ -611,6 +642,27 @@ class ECProServer(object):
                                 info_dict['prop_values'] = []
                                 info.append(info_dict)
 
+                            elif val[0]['options'] is None:
+                                info_dict['id'] = fields['id']
+                                info_dict['field_set'] = 'properties'
+                                info_dict['uuid'] = f"{uuid.uuid4()}"
+                                info_dict['value_type'] = fields['value_type']
+                                info_dict['tp_id'] = fields['tp_id']
+                                info_dict['_options_display'] = True
+                                info_dict['prop_values'] = [{"id": val[0]['id'], "text": val[0]['text']}]
+                                att[fields['id']] = val[0]['text']
+                                info.append(info_dict)
+                            # options: "{"disable": {"$op": "and", "$params": [[{"$op": "nin", "$params": [{"$op": "valueOf", "$params": ["1319054"]}, ["腈纶", "氨纶", "涤纶（聚酯纤维）"]]}]]}}"
+                            # options: "{"disable": {"$op": "and", "$params": [[{"$op": "nin", "$params": [{"$op": "valueOf", "$params": ["1319053"]}, ["化纤", "其它", "牛奶丝", "天鹅绒"]]}]]}}"
+                            # 把所有带联动属性，都放到options_data字典里
+                            elif ['options'] is not None:
+                                for val_data in val_all:
+                                    if val_data['options'] is not None:
+                                        if fields['id'] not in options_data:
+                                            options_data[fields['id']] = list()
+                                            options_data[fields['id']].append(val_data)
+                                        else:
+                                            options_data[fields['id']].append(val_data)
 
                         elif fields['field_type'] == 'checkbox':
                             val = self.getValues(category_id, fields['id'], token, 2)
@@ -655,8 +707,132 @@ class ECProServer(object):
                                                                             '_options_display': True}]}]
 
                             info.append(info_dict)
+                        # 从所有带联动属性的中，分为二级联动属性和三级联动属性
+                    if options_data:
+                        # print('options_data-------->',options_data)
+                        for fields_id, options_value in options_data.items():
+                            for val_options_data in options_value:
+                                options = val_options_data['options']
+                                #上面1688 下面拼多多
+                                #options: "{\"disable\": {\"$op\": \"nin\", \"$params\": [{\"$op\": \"valueOf\", \"$params\": [\"1367173\"]}, [\"国风复古\"]]}}"
+                                #options: "{\"disable\": {\"$op\": \"and\", \"$params\": [[{\"$op\": \"nin\", \"$params\": [{\"$op\": \"valueOf\", \"$params\": [1318982]}, [\"化纤\", \"其它\", \"网纱\"]]}]]}}"
+                                # if json.loads(options)["disable"]["$params"][1][0] is not None:
+                                if isinstance(json.loads(options)["disable"]["$params"][0],list) == True:
+                                    # 拼多多
+                                    optionss = json.loads(options)["disable"]["$params"][0][0]["$params"][1]
+                                    parent_id = int(json.loads(options)["disable"]["$params"][0][0]["$params"][0]["$params"][0])
+
+                                elif isinstance(json.loads(options)["disable"]["$params"][0],dict) == True:
+                                    # 1688
+                                    optionss = json.loads(options)["disable"]["$params"][1][0]
+                                    parent_id = int(json.loads(options)["disable"]["$params"][0]["$params"][0])
+                                # optionss1 = json.loads(options)["disable"]["$params"][1][0]
+                                # print('optionss1---->',optionss1)
+                                # print('optionss---->', (options)["disable"]["$params"][0][0]["$params"][1])
+                                # optionss = json.loads(options)["disable"]["$params"][0][0]["$params"][1]
+
+                                # print('------optionss', optionss)
+                                # parent_id = int(
+                                #     json.loads(options)["disable"]["$params"][0][0]["$params"][0]["$params"][0])
+                                # print('------parent_id', parent_id)
+
+                                # optionss = json.loads(options)["disable"]["$params"][1][0]
+                                #
+                                # parent_id = int(json.loads(options)["disable"]["$params"][0]["$params"][0])
+
+                                parent_select_value = att.get(parent_id)
+                                if parent_select_value in optionss:
+                                    if parent_id not in att_children:
+                                        att_children[parent_id] = list()
+                                        att_children[parent_id].append(
+                                            {fields_id: ({val_options_data['id']: val_options_data['text']})})
+                                    else:
+                                        att_children[parent_id].append(
+                                            {fields_id: ({val_options_data['id']: val_options_data['text']})})
+                                elif parent_select_value not in optionss:
+                                    if parent_id not in att_children_no:
+                                        att_children_no[parent_id] = list()
+                                        att_children_no[parent_id].append({fields_id: (
+                                        {'id': ({val_options_data['id']: val_options_data['text']}),
+                                         'options': options})})
+                                    else:
+                                        att_children_no[parent_id].append({fields_id: (
+                                        {'id': ({val_options_data['id']: val_options_data['text']}),
+                                         'options': options})})
+                                else:
+                                    continue
+
+                        # 查找出二级联动属性，并拼到info大字典里
+                    # print('......att_children', att_children)
+                    if att_children:
+                        for att_key, att_value in att_children.items():
+                            if len(att_children[att_key]) > 0:
+                                children_data = random.choice(att_children[att_key])
+                                children_id = [i for i in children_data.keys()][0]
+                                children_text = [i for i in children_data.values()][0]
+                                for children_key, children_value in children_text.items():
+                                    # print('//////children_key', children_key, children_value)
+                                    info_dict_son['id'] = children_id
+                                    info_dict_son['field_set'] = 'properties'
+                                    info_dict_son['uuid'] = f"{uuid.uuid4()}"
+                                    info_dict_son['value_type'] = 'text'
+                                    info_dict_son['tp_id'] = fields['tp_id']
+                                    info_dict_son['_options_display'] = True
+                                    info_dict_son['prop_values'] = [{"id": children_key, "text": children_value}]
+                                    import copy
+                                    deep_info_dict = copy.deepcopy(info_dict_son)
+                                    info.append(deep_info_dict)
+                                    att_grandchild[children_id] = children_text
+
+                    # 查找出三级联动属性
+                    # print('......att_children_no', att_children_no)
+                    if att_children_no:
+                        for att_key_no, att_value_no in att_children_no.items():
+                            for att_value_san in att_value_no:
+                                for att_value_san_key, att_value_san_value in att_value_san.items():
+                                    options = att_value_san_value["options"]
+                                    if isinstance(json.loads(options)["disable"]["$params"][0], list) == True:
+                                        # 拼多多
+                                        optionss = json.loads(options)["disable"]["$params"][0][0]["$params"][1]
+                                        parent_id = int(json.loads(options)["disable"]["$params"][0][0]["$params"][0]["$params"][0])
+
+                                    elif isinstance(json.loads(options)["disable"]["$params"][0],dict) == True:
+                                        # 1688
+                                        optionss = json.loads(options)["disable"]["$params"][1][0]
+                                        parent_id = int(json.loads(options)["disable"]["$params"][0]["$params"][0])
+
+                                    for att_grandchild_key, att_grandchild_value in att_grandchild.items():
+                                        for att_grandchild_value_key, att_grandchild_value_value in att_grandchild_value.items():
+                                            if parent_id == att_grandchild_key and att_grandchild_value_value in optionss:
+                                                if att_value_san_key not in att_data_grandchild_data:
+                                                    att_data_grandchild_data[att_value_san_key] = list()
+                                                    att_data_grandchild_data[att_value_san_key].append(
+                                                        att_value_san_value['id'])
+                                                else:
+                                                    att_data_grandchild_data[att_value_san_key].append(
+                                                        att_value_san_value['id'])
+                                    else:
+                                        continue
+
+                    # 将三级联动属性的列表，随机取值，然后拼到info大字典里
+                    # print('......att_data_grandchild_data', att_data_grandchild_data)
+                    if att_data_grandchild_data:
+                        for att_data_grandchild_data_key, att_data_grandchild_data_value in att_data_grandchild_data.items():
+                            grandchild_data = random.choice(att_data_grandchild_data_value)
+                            for data_key, data_value in grandchild_data.items():
+                                # print('?？？？data_key', data_key, data_value)
+                                info_dict_grand['id'] = att_data_grandchild_data_key
+                                info_dict_grand['field_set'] = 'properties'
+                                info_dict_grand['uuid'] = f"{uuid.uuid4()}"
+                                info_dict_grand['value_type'] = 'text'
+                                info_dict_grand['tp_id'] = fields['tp_id']
+                                info_dict_grand['_options_display'] = True
+                                info_dict_grand['prop_values'] = [{"id": data_key, "text": data_value}]
+                                import copy
+                                deep_info_dict_grand = copy.deepcopy(info_dict_grand)
+                                info.append(deep_info_dict_grand)
                     body['info'] = json.dumps(info)
-            print(json.dumps(body))
+                    # print(json.dumps(body))
             return body
         else:
             return '请求错误，请检查平台id或属性id是否正确'
@@ -664,6 +840,8 @@ class ECProServer(object):
     def getSize(self, category_id, attr_ids, tp_ids, token, num=1):
         INFO('调用 获取商品尺码 接口')
         murl = '/catalog/categories/%s/props/%s/prop_values?tp_ids=%s' % (category_id, attr_ids, ','.join(tp_ids))
+        # https://cms-qa-api.ecpro.com/catalog/categories/13458/props/2081654/prop_values?tp_ids=1000,1001
+        # https://cms-qa-api.ecpro.com/catalog/categories/13458/props/2081654/prop_values?tp_ids=1001,1000&page=1&per_page=100&q=
         res = http.get(murl, token)
         # print(json.loads(res))
         textlist = []
@@ -702,10 +880,14 @@ class ECProServer(object):
                 girllist.append(i)
             elif 'M' in i :
                 girllist.append(i)
+            elif 'XL' in i:
+                girllist.append(i)
 
         num_list = []
+        # textlist.append({i['text']: i['prop_value_id']})
         for i in range(num):
             num_list.append(random.randrange(0, len(textlist)))
+            # print(num_list)
         num_list_new = []
         for i in num_list:
             if i not in num_list_new:
@@ -716,8 +898,12 @@ class ECProServer(object):
             size_list.append(textlist[i])
         # size_list = childrenlist
         # size_list = boylist
-        # size_list = girllist
-        # print(size_list)
+
+        # 淘宝天猫添加自定义尺码，需在参数配置中配置
+        # 童装尺码需要注释因为是中国码
+        size_list = girllist
+        size_list = [{'suibian': uuid.uuid4()}, {'随便': uuid.uuid4()}, {'zidingyi': uuid.uuid4()}, {'自定义': uuid.uuid4()},
+                     {'dama': uuid.uuid4()}, {'大码': uuid.uuid4()},{'zidingyi2': uuid.uuid4()},{'zidingyi3': uuid.uuid4()}]
         return size_list
 
     def checkTpid(self, category_id, tp_ids, token):
@@ -753,6 +939,42 @@ class ECProServer(object):
                 ERROR(error)
                 writeFile('noneValues', '%s:%s' % (time.strftime('%Y-%m-%d-%H', time.localtime(time.time())), error))
                 return None
+
+    def getValues_props(self, category_id, attr_ids, token, tp_ids, num=1):
+        INFO('调用 获取商品计量单位属性值 接口')
+        # https://cms-qa-api.ecpro.com/catalog/categories/13145/props/2146566/prop_values?tp_ids=1001,1000,1003,1004,1006,1008,1010,1011,1012,1013
+        murl = '/catalog/categories/%s/props/%s/prop_values?tp_ids=%s' % (category_id, attr_ids, ','.join(tp_ids))
+        res = http.get(murl, token)
+        textlist = []
+        res = json.loads(res)
+        if res['message'] == 'Success':
+            res = res['data']['prop_values']
+            for i in res:
+                textlist.append(i)
+        try:
+            return random.sample(textlist, num)
+        except:
+            INFO('checkbox属性不足3个，默认选择1个')
+            try:
+                return random.sample(textlist, 1)
+            except:
+                error = '属性值为空：类目id：%s，属性id：%s' % (category_id, attr_ids)
+                ERROR(error)
+                writeFile('noneValues', '%s:%s' % (time.strftime('%Y-%m-%d-%H', time.localtime(time.time())), error))
+                return None
+
+    def getValues_all(self, category_id, attr_ids, token):
+        INFO('调用 获取商品属性值 接口')
+        murl = '/catalog/tps/0/tp_categories/%s/tp_props/%s/tp_prop_values' % (category_id, attr_ids)
+        res = http.get(murl, token)
+        textlist = []
+        res = json.loads(res)
+        if res['message'] == 'Success':
+            res = res['data']['tp_prop_values']
+            for i in res:
+                textlist.append(i)
+        # print('textlist', textlist)
+        return textlist
 
     def getValueAndId(self, category_id, attr_ids, token, num=1):
         INFO('调用 获取商品属性值 接口')

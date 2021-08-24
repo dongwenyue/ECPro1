@@ -3,8 +3,13 @@
 @time 2021-5-21
 @author: yzm
 """
+import datetime
 import random
 import sqlite3
+import string
+import time
+import uuid
+
 import requests
 import MySQLdb
 from collections import ChainMap
@@ -75,7 +80,7 @@ def MakeDbfile(mysql_name):
     conn.close()
 
 
-def select_insert(mysql_name, d, tp_id, template_list, model_list):
+def select_insert(mysql_name, d, code, tp_id, template_list, model_list):
     # 写入文件数据库
     conn = sqlite3.connect(mysql_name)
     c = conn.cursor()
@@ -91,20 +96,20 @@ def select_insert(mysql_name, d, tp_id, template_list, model_list):
         if '女' in value:
             des = "【创建商品】普通商品上货流程（女装）"
             file = 'testZip.zip'
-            sql = 'INSERT INTO "createProduct"("id", "description", "period", "category_id", "period_id", "category_path", "filename", "codes", "tp_ids", "template_id", "model_id", "expect") VALUES ("%s", "%s", "2020-12-30", "%s", "13102", "%s", "%s", "codes()", "%s", "%s", "%s", "0");' % (
-            count, des, key, value, file, tp_id, template_id, model_id)
+            sql = 'INSERT INTO "createProduct"("id", "description", "period", "category_id", "period_id", "category_path", "filename", "codes", "tp_ids", "template_id", "model_id", "expect") VALUES ("%s", "%s", "2020-12-30", "%s", "13102", "%s", "%s", "%s", "%s", "%s", "%s", "0");' % (
+            count, des, key, value, file, code, tp_id, template_id, model_id)
             print(sql)
         if '男' in value:
             des = "【创建商品】普通商品上货流程（男装）"
             file = 'boy.zip'
-            sql = 'INSERT INTO "createProduct"("id", "description", "period", "category_id", "period_id", "category_path", "filename", "codes", "tp_ids", "template_id", "model_id", "expect") VALUES ("%s", "%s", "2020-12-30", "%s", "13102", "%s", "%s", "codes()", "%s", "%s", "%s", "0");' % (
-            count, des, key, value, file, tp_id, template_id, model_id)
+            sql = 'INSERT INTO "createProduct"("id", "description", "period", "category_id", "period_id", "category_path", "filename", "codes", "tp_ids", "template_id", "model_id", "expect") VALUES ("%s", "%s", "2020-12-30", "%s", "13102", "%s", "%s", "%s", "%s", "%s", "%s", "0");' % (
+            count, des, key, value, file, code, tp_id, template_id, model_id)
             print(sql)
         if '童' in value:
             des = "【创建商品】普通商品上货流程（童装）"
             file = 'testZip.zip'
-            sql = 'INSERT INTO "createProduct"("id", "description", "period", "category_id", "period_id", "category_path", "filename", "codes", "tp_ids", "template_id", "model_id", "expect") VALUES ("%s", "%s", "2020-12-30", "%s", "13102", "%s", "%s", "codes()", "%s", "%s", "%s", "0");' % (
-            count, des, key, value, file, tp_id, template_id, model_id)
+            sql = 'INSERT INTO "createProduct"("id", "description", "period", "category_id", "period_id", "category_path", "filename", "codes", "tp_ids", "template_id", "model_id", "expect") VALUES ("%s", "%s", "2020-12-30", "%s", "13102", "%s", "%s", "%s", "%s", "%s", "%s", "0");' % (
+            count, des, key, value, file, code, tp_id, template_id, model_id)
             print(sql)
         c.execute(sql)
     conn.commit()
@@ -159,7 +164,7 @@ def get_model_id(page=1, per_page=14):
         get_model_id(page + 1, per_page)
     return model_list
 if __name__ == '__main__':
-    tp_id = "1000"
+    tp_id = "1001"
     HOST = 'qa'
     mysql_name = 'Case.db'
 
@@ -191,7 +196,12 @@ if __name__ == '__main__':
     children = select_mysql('童')
     MakeDbfile(mysql_name)
     d = dict(ChainMap(children, boy, girl))
-    select_insert(mysql_name, d, tp_id, template_list, model_list)
+    # Python生成2位的英文大写的随机数
+    random_str = ''.join([random.choice(string.ascii_uppercase) for i in range(2)])
+    code = time.strftime("%m%d", time.localtime()) + random_str
+    select_insert(mysql_name, d, code, tp_id, template_list, model_list)
+
+
 
 
 

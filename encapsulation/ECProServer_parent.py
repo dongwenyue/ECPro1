@@ -289,6 +289,11 @@ class ECProServer(object):
             body['price'] = 1111
             body['category_id'] = int(category_id)
             body['tp_ids'] = [int(tp_id) for tp_id in tp_ids]
+            body['whole_sale_info'] = {
+                "quoteType": "1",
+                "saleType": "normal",
+                "minOrderQuantity": 2
+            }
             sku_table_list = []
             for field in res['data']:
                 if field['name'] == 'basic':
@@ -642,8 +647,13 @@ class ECProServer(object):
                         for fields_id, options_value in options_data.items():
                             for val_options_data in options_value:
                                 options = val_options_data['options']
-                                optionss = json.loads(options)["disable"]["$params"][0][0]["$params"][1]
-                                parent_id = int(json.loads(options)["disable"]["$params"][0][0]["$params"][0]["$params"][0])
+                                # 上面1688 下面拼多多
+                                # options: "{\"disable\": {\"$op\": \"nin\", \"$params\": [{\"$op\": \"valueOf\", \"$params\": [\"1367173\"]}, [\"国风复古\"]]}}"
+                                # options: "{\"disable\": {\"$op\": \"and\", \"$params\": [[{\"$op\": \"nin\", \"$params\": [{\"$op\": \"valueOf\", \"$params\": [1318982]}, [\"化纤\", \"其它\", \"网纱\"]]}]]}}"
+                                optionss = json.loads(options)["disable"]["$params"][1][0]
+
+                                parent_id = int(json.loads(options)["disable"]["$params"][0]["$params"][0])
+
                                 parent_select_value = att.get(parent_id)
                                 if parent_select_value in optionss:
                                     if parent_id not in att_children:
@@ -686,8 +696,8 @@ class ECProServer(object):
                             for att_value_san in att_value_no:
                                 for att_value_san_key, att_value_san_value in att_value_san.items():
                                     options = att_value_san_value["options"]
-                                    optionss = json.loads(options)["disable"]["$params"][0][0]["$params"][1]
-                                    parent_id = int(json.loads(options)["disable"]["$params"][0][0]["$params"][0]["$params"][0])
+                                    optionss = json.loads(options)["disable"]["$params"][1][0]
+                                    parent_id = int(json.loads(options)["disable"]["$params"][0]["$params"][0])
                                     for att_grandchild_key, att_grandchild_value in att_grandchild.items():
                                         for att_grandchild_value_key, att_grandchild_value_value in att_grandchild_value.items():
                                             if parent_id == att_grandchild_key and att_grandchild_value_value in optionss:

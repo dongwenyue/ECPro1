@@ -1,60 +1,26 @@
-#! -*- coding: utf-8 -*-
-"""
-Author: dongwenyue
-Create type_time: 2020-6-2
-Info: 定期向企业微信推送消息
-"""
-import requests, json
-import datetime
-import time
+# -*- coding: utf-8 -*-
+from utils.dbutils.sqlite_dao import CasesSqliteDao
+import requests
 
 
-wx_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=5071ba86-4d67-404b-807c-f751f57cafcf'  # 测试机器人1号
-send_message = "111"
+class wechatRebot:
+    def __init__(self):
+        pass
+    def Rebot(self):
+        self.case_db = CasesSqliteDao()
+        self.case = self.case_db.get_data_by_id("createProduct", 1, 'lvl')
+        tp_ids = self.case['tp_ids'].split(',')
+        prefix = self.case['codes']
+        # print(tp_ids, prefix)
+        return tp_ids, prefix
 
-
-def get_current_time():
-  """获取当前时间，当前时分秒"""
-  now_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-  hour = datetime.datetime.now().strftime("%H")
-  mm = datetime.datetime.now().strftime("%M")
-  ss = datetime.datetime.now().strftime("%S")
-  return now_time, hour, mm, ss
-
-
-def sleep_time(hour, m, sec):
-  """返回总共秒数"""
-  return hour * 3600 + m * 60 + sec
-
-
-def send_msg(content):
-    """艾特全部，并发送指定信息"""
-    data = json.dumps({"msgtype": "text", "text": {"content": content, "mentioned_list": ["@董文跃"]}})
-    r = requests.post(wx_url, data, auth=('Content-Type', 'application/json'))
-    print(r.json)
-
-
-def every_time_send_msg(interval_h=0, interval_m=1, interval_s=0, special_h="00", special_m="00", mode="special"):
-    """每天指定时间发送指定消息"""
-
-    # 设置自动执行间隔时间
-    second = sleep_time(interval_h, interval_m, interval_s)
-    # 死循环
-    while 1 == 1:
-        # 获取当前时间和当前时分秒
-        c_now, c_h, c_m, c_s = get_current_time()
-        print("当前时间：", c_now, c_h, c_m, c_s)
-        if mode == "special":
-            if c_h == special_h and c_m == special_m:
-                # 执行
-                print("正在发送...")
-                send_msg(send_message)
-        else:
-            send_msg(send_message)
-        print("每隔" + str(interval_h) + "小时" + str(interval_m) + "分" + str(interval_s) + "秒执行一次")
-        # 延时
-        time.sleep(second)
-
-
-if __name__ == '__main__':
-    every_time_send_msg(mode="no")
+class wechatRebot_send:
+    def __init__(self,message):
+        self.message = message
+    def test_robot(self):
+        headers = {"CContent-Type": "text/plain"}
+        data = {"msgtype": "text","text": {"content":self.message,}}
+        wxurl = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=24692f61-7f4f-41f4-a4df-57b9b4660a57'
+        r = requests.post(url=wxurl, headers=headers, json=data)
+        print(r.text)
+        return (r.text)
