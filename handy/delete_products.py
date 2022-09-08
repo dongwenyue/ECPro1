@@ -60,7 +60,7 @@ def dele_product(id):
 
 
 if __name__ == '__main__':
-    codes = 'nv1366en'
+    codes = '0928'
     HOST = 'qa'
     if HOST == 'qa':
         cms_number = 18617847474

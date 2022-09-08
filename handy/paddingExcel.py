@@ -115,7 +115,7 @@ def search_value(filename, keyword):
 
 
 if __name__ == '__main__':
-    excel_name = '20210517-18_01_29.xlsx'
+    excel_name = '20211110-10_56_51.xlsx'
 
     read_with_dropdown(excel_name, "商品属性")
     read_with_dropdown(excel_name, "sku表")
